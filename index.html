@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Albums</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th, td {
+        text-align: left;
+        padding: 8px;
+      }
+      th {
+        background-color: #4CAF50;
+        color: white;
+      }
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <form>
+      <p>Create a new album</p>
+      <label>Title</label>
+      <input type="text" id="titleText"></input>
+      <label>Artist</label>
+      <input type="text" id = "ArtistText" ></input>
+      <label class="form-label">Year</label>
+      <input type="number" id = "yearText" ></input>
+      <button type="button" id="addButton">Add album</button>
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Artist</th>
+          <th>Year</th>
+          <th>Actions</th>
+        </tr>
+        <br>
+      </thead>
+      <tbody id="album-table"></tbody>
+    </table>
+
+    <div id="edit">
+    </div>
+
+    <div id="albumdetails">
+    </div>
+    <script>
+      function createRowForTable(album){
+
+        //construct the table row
+        const row = document.createElement('tr');
+
+        const titleCell = document.createElement('td');
+        titleCell.textContent = album.title;
+        row.appendChild(titleCell);
+
+        const artistCell = document.createElement('td');
+        artistCell.textContent = album.artist;
+        row.appendChild(artistCell);
+
+        const yearCell = document.createElement('td');
+        yearCell.textContent = album.year;
+        row.appendChild(yearCell);
+
+        const actionsCell = document.createElement('td');
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => {
+          const editDiv = document.getElementById('edit');
+          const form = document.createElement('form');
+          
+          const titleInput = document.createElement('input');
+          titleInput.type = 'text';
+          titleInput.name = 'title';
+          titleInput.value = album.title;
+          form.appendChild(titleInput);
+          
+          const artistInput = document.createElement('input');
+          artistInput.type = 'text';
+          artistInput.name = 'artist';
+          artistInput.value = album.artist;
+          form.appendChild(artistInput);
+          
+          const yearInput = document.createElement('input');
+          yearInput.type = 'number';
+          yearInput.name = 'year';
+          yearInput.value = album.year;
+          form.appendChild(yearInput);
+          
+          const updateButton = document.createElement('button');
+          updateButton.type = 'button';
+          updateButton.textContent = 'Update';
+          updateButton.addEventListener('click', async () => {
+            const updatedAlbum = {
+              title: titleInput.value,
+              artist: artistInput.value,
+              year: yearInput.value
+            };
+            
+            const response = await fetch(`http://127.0.0.1:3000/api/albums/${album._id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(updatedAlbum)
+            });
+            //update the table again and remove the form..
+            if (response.ok) {
+              album.title = updatedAlbum.title;
+              album.artist = updatedAlbum.artist;
+              album.year = updatedAlbum.year;
+              
+              titleCell.textContent = album.title;
+              artistCell.textContent = album.artist;
+              yearCell.textContent = album.year;
+              
+              form.remove();
+            } else {
+              const errorResponse = await response.json();
+              console.error(`Error updating album: ${errorResponse.message}`);
+            }
+          });
+          
+          const cancelButton = document.createElement('button');
+          cancelButton.type = 'button';
+          cancelButton.textContent = 'Cancel';
+          cancelButton.addEventListener('click', () => {
+            form.remove();
+          });
+          
+          form.appendChild(updateButton);
+          form.appendChild(cancelButton);
+          
+          editDiv.appendChild(form);
+        });
+        actionsCell.appendChild(editButton);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', async () => {
+          await fetch(`http://127.0.0.1:3000/api/albums/${album._id}`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+          row.remove();
+        });
+        actionsCell.appendChild(deleteButton);
+
+        const detailsButton = document.createElement('button');
+        detailsButton.textContent = 'Details';
+          detailsButton.addEventListener('click', () => {
+          const detailsDiv = document.getElementById('albumdetails');
+          detailsDiv.textContent = `The album ${album.title} by ${album.artist} was released in ${album.year}`;
+        });
+        actionsCell.appendChild(detailsButton);
+
+        row.appendChild(actionsCell);
+
+        return row;
+      }
+     
+
+      async function fetchAlbums() {
+        const response = await fetch('http://127.0.0.1:3000/api/albums');
+        const albums = await response.json();
+
+        const albumTable = document.getElementById('album-table');
+
+        for (const album of albums) {
+          console.log(album)
+          row = createRowForTable(album);
+          albumTable.appendChild(row);
+        }
+
+        const addButton = document.getElementById('addButton');
+          addButton.addEventListener('click', async () => {
+            const title = document.getElementById('titleText').value;
+            const artist = document.getElementById('ArtistText').value;
+            const year = document.getElementById('yearText').value;
+
+            const response = await fetch('http://127.0.0.1:3000/api/albums', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                title: title,
+                artist: artist,
+                year: year
+              })
+            });
+            const newAlbum = await response.json();
+            const album = {_id: newAlbum._id, title: title, artist: artist, year: year}
+            const newRow = createRowForTable(album)
+            albumTable.appendChild(newRow)
+      });
+      }
+      fetchAlbums();
+    </script>
+  </body>
+</html>
