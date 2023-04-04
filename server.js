@@ -4,6 +4,10 @@ require('dotenv').config();
 
 const app = express();
 
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.get('/api/albums', async (req, res) => {
   try {
     const albums = await Album.find({});
@@ -30,6 +34,23 @@ app.get('/api/albums/:title', async (req, res) => {
     res.status(500).send(err);
   }
 });
+
+app.put('api/albums/:title', async (req, res) => {
+  
+})
+
+app.post('/api/albums/', async (req, res) => {
+  try {
+    const { title, artist, year } = req.body;
+    console.log(title)
+    const newAlbum = await Album.create({ title: title, artist: artist, year: year });
+    res.send(newAlbum);
+  } catch (err) {
+    console.log(err)
+    res.status(500).send(err);
+  }
+});
+
 
 
 mongoose.connect(process.env.DB_URI)
