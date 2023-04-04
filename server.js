@@ -35,9 +35,21 @@ app.get('/api/albums/:title', async (req, res) => {
   }
 });
 
-app.put('api/albums/:title', async (req, res) => {
-  
-})
+app.put('/api/albums/:id', async (req, res) => {
+  try {
+    const paramId = req.params.id;
+    const { title, artist, year } = req.body;
+    const album = await Album.findByIdAndUpdate(paramId, { title: title, artist: artist, year: year }, { new: true });
+    console.log(album)
+    if (!album) {
+      res.status(404).send(`404 : No album found with title ${title}`);
+    } else {
+      res.send(album);
+    }
+  } catch (err) {
+    res.status(404).send(`404 : No album found`);
+  }
+});
 
 app.post('/api/albums/', async (req, res) => {
   try {
