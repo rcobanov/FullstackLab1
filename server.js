@@ -13,6 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRouter)
 
+app.get('*', (req, res) => {
+  res.sendFile('index.html');
+});
+
 mongoose.connect(process.env.DB_URI)
   .then(() => {
     console.log("Connected to mongodb");
