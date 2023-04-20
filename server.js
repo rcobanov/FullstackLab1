@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', apiRouter)
 
 app.get('*', (req, res) => {
-  res.sendFile('index.html');
+  res.sendFile('index.html', { root: __dirname });
 });
 
 mongoose.connect(process.env.DB_URI)
