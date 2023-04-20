@@ -5,7 +5,6 @@ const cors = require('cors');
 require('dotenv').config();
 
 
-
 const app = express();
 
 app.use(cors()); 
@@ -13,7 +12,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRouter)
-
 
 mongoose.connect(process.env.DB_URI)
   .then(() => {
@@ -24,5 +22,3 @@ mongoose.connect(process.env.DB_URI)
     });
   })
   .catch(err => console.log(err));
-
-  
